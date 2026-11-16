@@ -404,7 +404,7 @@
                     if (driveUrl && driveUrl.startsWith("http")) {
                         if (checkType === "VÀO") {
                             let secondsLeft = 3;
-                            resultAlert.innerHTML = ```html
+                            resultAlert.innerHTML = `
                                 <i class="fa-solid fa-circle-check me-2"></i><strong>THÀNH CÔNG!</strong><br>${resJson.message}
                                 <hr class="my-2">
                                 <div class="text-center">
@@ -416,7 +416,7 @@
                                         <i class="fa-brands fa-google-drive me-1"></i> Mở thư mục tài liệu ngay
                                     </a>
                                 </div>
-                                ```;
+                            `;
 
                             const timerInterval = setInterval(() => {
                                 secondsLeft--;
@@ -429,14 +429,14 @@
                             }, 1000);
                         } else {
                             // Nếu điểm danh RA, hiển thị nút xem lại tài liệu nếu cần
-                            resultAlert.innerHTML = ```html
+                            resultAlert.innerHTML = `
                                 <i class="fa-solid fa-circle-check me-2"></i><strong>THÀNH CÔNG!</strong><br>${resJson.message}
                                 <div class="mt-2">
                                     <a href="${driveUrl}" class="btn btn-outline-success btn-sm w-100 fw-bold">
                                         <i class="fa-brands fa-google-drive me-1"></i> Xem lại tài liệu hội nghị
                                     </a>
                                 </div>
-                            ```;
+                            `;
                         }    
                     
                     // resultAlert.innerHTML = `<i class="fa-solid fa-circle-check me-2"></i><strong>THÀNH CÔNG!</strong><br>${resJson.message}`;
