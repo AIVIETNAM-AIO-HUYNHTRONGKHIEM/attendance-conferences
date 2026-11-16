@@ -245,53 +245,112 @@
 
         // 1. Tạo mã định danh thiết bị chống điểm danh 2 lần (Hardware + Canvas Fingerprint)
         function generateDeviceFingerprint() {
-            let canvasData = "no-canvas";
+            // let canvasData = "no-canvas";
+            // 1. Ưu tiên đọc lại mã đã lưu (dùng key v2 để tự động bỏ qua mã cũ bị lệch trước đó)
             try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                    ctx.textBaseline = "top";
-                    ctx.font = "14px 'Arial'";
-                    ctx.fillStyle = "#f60";
-                    ctx.fillRect(125, 1, 62, 20);
-                    ctx.fillStyle = "#069";
-                    ctx.fillText("DANG_UY_XUAN_PHUOC", 2, 15);
-                    const canvasData = canvas.toDataURL();
+                const storedId = localStorage.getItem("duxp_device_id_v2");
+                if (storedId && storedId.startsWith("DEV-")) {
+                    return storedId;
+                }
+                const cookieMatch = document.cookie.match(/(?:^|;\s*)duxp_device_id_v2=(DEV-[A-F0-9]+)/);
+                if (cookieMatch) {
+                    localStorage.setItem("duxp_device_id_v2", cookieMatch[1]);
+                    return cookieMatch[1];
                 }
             } catch (e) {
-                canvasData = "canvas-blocked";
+            // Trình duyệt chặn đọc storage -> bỏ qua để tự băm lại từ phần cứng bên dưới
             }
             
+            // Lấy thông tin chip đồ họa (GPU) - Cố định trên mọi trình duyệt của cùng 1 điện thoại
+            let gpuRenderer = "no-gpu";
+            // try {
+            //     const canvas = document.createElement('canvas');
+            //     const ctx = canvas.getContext('2d');
+            //     if (ctx) {
+            //         ctx.textBaseline = "top";
+            //         ctx.font = "14px 'Arial'";
+            //         ctx.fillStyle = "#f60";
+            //         ctx.fillRect(125, 1, 62, 20);
+            //         ctx.fillStyle = "#069";
+            //         ctx.fillText("DANG_UY_XUAN_PHUOC", 2, 15);
+            //         const canvasData = canvas.toDataURL();
+            //     }
+            // } catch (e) {
+            //     canvasData = "canvas-blocked";
+            // }
+
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (debugInfo) {
+                        gpuRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || "webgl-ok";
+                    }
+                }
+            } catch (e) {
+                gpuRenderer = "gpu-blocked";
+            }
+
+            // Sắp xếp chiều rộng/cao màn hình cố định (tránh thay đổi khi xoay ngang/dọc điện thoại)
+            const w = Math.min(screen.width || 0, screen.height || 0);
+            const h = Math.max(screen.width || 0, screen.height || 0);
+            const dpr = window.devicePixelRatio || 1;
             
 
-            const rawTraits = [
-                navigator.userAgent || "ua",
-                (screen.width || 0) + "x" + (screen.height || 0), //+ "x" + screen.colorDepth,
-                (Intl.DateTimeFormat().resolvedOptions().timeZone || "tz"),
-                navigator.hardwareConcurrency || "cpu",
-                canvasData
-            ].join("###");
+            // const rawTraits = [
+            //     navigator.userAgent || "ua",
+            //     (screen.width || 0) + "x" + (screen.height || 0), //+ "x" + screen.colorDepth,
+            //     (Intl.DateTimeFormat().resolvedOptions().timeZone || "tz"),
+            //     navigator.hardwareConcurrency || "cpu",
+            //     canvasData
+            // ].join("###");
+
+            // Chỉ ghép các thông số phần cứng bất biến (Bỏ UserAgent và 2D Canvas)
+            const hardwareTraits = [
+                `${w}x${h}@${dpr}`,
+                navigator.platform || "platform",
+                navigator.hardwareConcurrency || "cores",
+                navigator.deviceMemory || "mem",
+                (Intl.DateTimeFormat().resolvedOptions().timeZone) || "tz",
+                gpuRenderer
+            ].join("|");
 
             // Băm chuỗi thành mã 8 ký tự Hex
             let hash = 0;
-            for (let i = 0; i < rawTraits.length; i++) {
-                const char = rawTraits.charCodeAt(i);
+            for (let i = 0; i < hardwareTraits.length; i++) {
+                const char = hardwareTraits.charCodeAt(i);
                 hash = ((hash << 5) - hash) + char;
                 hash |= 0;
             }
             // const hexHash = Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
-            const fallbackId = "DEV-" + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+            // const fallbackId = "DEV-" + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+            const hardwareId = "DEV-" + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
             // Kết hợp lưu trữ localStorage để tăng độ bền vững
+            // try {
+            //     let savedId = localStorage.getItem("duxp_device_id");
+            //     if (!savedId) {
+            //         savedId = fallbackId; //"DEV-" + hexHash;
+            //         localStorage.setItem("duxp_device_id", savedId);
+            //     }
+            //     return savedId;
+            // } catch (e) {
+            //     return fallbackId;
+            // }
+
+            // Lưu đồng thời vào localStorage và Cookie để giữ nguyên mã trong cùng trình duyệt
             try {
-                let savedId = localStorage.getItem("duxp_device_id");
-                if (!savedId) {
-                    savedId = fallbackId; //"DEV-" + hexHash;
-                    localStorage.setItem("duxp_device_id", savedId);
-                }
-                return savedId;
+                localStorage.setItem("duxp_device_id_v2", hardwareId);
+                document.cookie = `duxp_device_id_v2=${hardwareId}; max-age=31536000; path=/; SameSite=Lax`;
             } catch (e) {
-                return fallbackId;
+                try {
+                    sessionStorage.setItem("duxp_device_id_v2", hardwareId);
+                } catch (err) {
+                // Mọi bộ nhớ trình duyệt đều bị khóa -> vẫn trả về hardwareId đã băm ở bước 2
+                }
             }
+
+            return hardwareId;
         }
 
         // Tính khoảng cách Haversine (mét)
