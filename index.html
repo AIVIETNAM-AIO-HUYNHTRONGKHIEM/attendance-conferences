@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điểm danh Hội nghị - Đảng ủy xã Xuân Phước</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #8e0000 0%, #c8102e 50%, #8e0000 100%);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex; 
+            align-items: center; 
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            position: relative;
+        }
+
+        /* Hình nền chìm toàn màn hình */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Flag_of_the_Communist_Party_of_Vietnam.svg/512px-Flag_of_the_Communist_Party_of_Vietnam.svg.png');
+            background-size: 65%;
+            background-position: center center;
+            background-repeat: no-repeat;
+            opacity: 0.08;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container { position: relative; z-index: 2; }
+
+        .card { 
+            border: 2px solid #ffc107;
+            border-radius: 14px; 
+            box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.98);
+        }
+
+        .card-body { padding: 2rem 1.75rem; }
+
+        .header-title {
+            color: #b71c1c;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 1.3rem;
+        }
+        
+        .conference-name {
+            color: #d32f2f;
+            font-weight: 700;
+            font-size: 1.05rem;
+            line-height: 1.4;
+        }
+
+        /* Khung WiFi */
+        .wifi-box {
+            background-color: #fff8e1;
+            border: 1px dashed #ffb300;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+        .wifi-box strong { color: #c62828; }
+
+        /* Thanh trạng thái GPS */
+        .gps-status {
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            font-weight: 600;
+        }
+
+        /* Nút chọn Vào / Ra */
+        .btn-check:checked + .btn-outline-danger {
+            background-color: #c8102e;
+            border-color: #c8102e;
+            color: #ffd54f;
+            font-weight: 700;
+        }
+
+        /* Nút Xác nhận vàng kim chữ đỏ */
+        .btn-submit {
+            background: linear-gradient(180deg, #ffd54f 0%, #ffb300 100%);
+            border: 1px solid #ffa000;
+            color: #9b0000;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+        }
+        .btn-submit:hover:not(:disabled) {
+            background: linear-gradient(180deg, #ffca28 0%, #ffa000 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 179, 0, 0.5);
+        }
+
+        .form-label { font-weight: 600; color: #444; font-size: 0.9rem; }
+        .device-badge { font-size: 0.75rem; color: #777; margin-top: 15px; }
+
+        /* Hiệu ứng cờ rơi */
+        #flag-fall-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .falling-flag {
+            position: absolute;
+            top: -50px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+            border-radius: 2px;
+        }
+        @keyframes fallAnimation {
+            0% { top: -10%; transform: translateX(0) rotate(0deg); opacity: 0; }
+            15% { opacity: 0.9; }
+            50% { transform: translateX(25px) rotate(8deg); }
+            100% { top: 110%; transform: translateX(-25px) rotate(-12deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="flag-fall-container"></div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="mb-2">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Flag_of_the_Communist_Party_of_Vietnam.svg/120px-Flag_of_the_Communist_Party_of_Vietnam.svg.png" alt="Cờ Đảng" style="height: 36px; border-radius: 3px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        </div>
+                        
+                        <h2 class="header-title mb-1">ĐẢNG ỦY XÃ XUÂN PHƯỚC</h2>
+                        <h3 class="conference-name mb-3" id="meetingTitle">
+                            <span class="spinner-border spinner-border-sm text-danger"></span> Đang kết nối máy chủ...
+                        </h3>
+                        
+                        <!-- Thông tin WiFi -->
+                        <div class="wifi-box text-start">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="fa-solid fa-wifi me-2 text-warning"></i>
+                                <span>Tên WiFi: <strong>DANG UY XUAN PHUOC</strong></span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fa-solid fa-key me-2 text-warning"></i>
+                                <span>Mật khẩu: <strong>67896789</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Màn hình thông báo khi Server đóng -->
+                        <div id="closedBanner" class="alert alert-secondary d-none py-4">
+                            <i class="fa-solid fa-lock fa-2x mb-2 text-danger"></i>
+                            <h5 class="fw-bold text-danger">CỔNG ĐIỂM DANH ĐANG ĐÓNG</h5>
+                            <p class="small mb-0">Hiện chưa đến thời gian điểm danh hoặc hội nghị đã kết thúc. Đồng chí vui lòng chờ hiệu lệnh của Ban Tổ chức.</p>
+                        </div>
+
+                        <!-- Khu vực Form điểm danh (hiện khi Server OPEN) -->
+                        <div id="activeFormArea" class="d-none">
+                            <!-- Trạng thái GPS -->
+                            <div id="gpsStatus" class="gps-status alert alert-info mb-3">
+                                <i class="fa-solid fa-location-crosshairs fa-spin me-1"></i> Đang xác định tọa độ GPS của đồng chí...
+                            </div>
+
+                            <!-- Thông báo kết quả -->
+                            <div id="resultAlert" class="alert d-none text-start small"></div>
+
+                            <form id="checkinForm" autocomplete="off">
+                                <!-- Chọn Check-in Vào / Ra -->
+                                <div class="mb-3 text-start">
+                                    <label class="form-label">Hình thức điểm danh</label>
+                                    <div class="btn-group w-100" role="group">
+                                        <input type="radio" class="btn-check" name="checkType" id="typeIn" value="VÀO" checked>
+                                        <label class="btn btn-outline-danger py-2" for="typeIn">
+                                            <i class="fa-solid fa-right-to-bracket me-1"></i> Điểm danh VÀO
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="checkType" id="typeOut" value="RA">
+                                        <label class="btn btn-outline-danger py-2" for="typeOut">
+                                            <i class="fa-solid fa-right-from-bracket me-1"></i> Điểm danh RA
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Chức danh -->
+                                <div class="mb-3 text-start">
+                                    <label for="title" class="form-label">Chức danh / Đơn vị</label>
+                                    <select class="form-select form-select-lg" id="title" required>
+                                        <option value="" disabled selected>-- Chọn chức danh --</option>
+                                        <option value="Thường trực Đảng ủy">Thường trực Đảng ủy</option>
+                                        <option value="Ủy viên Ban Thường vụ">Ủy viên Ban Thường vụ</option>
+                                        <option value="Đảng ủy viên">Đảng ủy viên</option>
+                                        <option value="Bí thư Chi bộ">Bí thư Chi bộ</option>
+                                        <option value="Phó Bí thư Chi bộ">Phó Bí thư Chi bộ</option>
+                                        <option value="Đảng viên">Đảng viên</option>
+                                        <option value="Đại biểu khách mời">Đại biểu khách mời</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                </div>
+
+                                <!-- Họ và tên -->
+                                <div class="mb-4 text-start">
+                                    <label for="name" class="form-label">Họ và tên đồng chí</label>
+                                    <input type="text" class="form-control form-control-lg" id="name" placeholder="Ví dụ: Nguyễn Văn A..." required>
+                                </div>
+
+                                <button type="submit" class="btn btn-submit btn-lg w-100 py-3" id="submitBtn" disabled>
+                                    <span id="btnContent"><i class="fa-solid fa-check-circle me-2"></i>Xác nhận điểm danh</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="device-badge">
+                            <i class="fa-solid fa-mobile-screen-button me-1"></i> Mã thiết bị: <span id="deviceIdDisplay" class="fw-bold">...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // DÁN ĐƯỜNG DẪN WEB APP GOOGLE APPS SCRIPT CỦA BẠN VÀO DÒNG DƯỚI ĐÂY:
+        const GAS_URL = "DÁN_LINK_GOOGLE_APPS_SCRIPT_CỦA_BẠN_VÀO_ĐÂY";
+        // =========================================================================
+
+        let venueConfig = null;
+        let userCoords = { lat: null, lon: null, distance: null };
+        let currentDeviceId = "";
+
+        // 1. Tạo mã định danh thiết bị chống điểm danh 2 lần (Hardware + Canvas Fingerprint)
+        function generateDeviceFingerprint() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = "top";
+            ctx.font = "14px 'Arial'";
+            ctx.fillStyle = "#f60";
+            ctx.fillRect(125, 1, 62, 20);
+            ctx.fillStyle = "#069";
+            ctx.fillText("DANG_UY_XUAN_PHUOC", 2, 15);
+            const canvasData = canvas.toDataURL();
+
+            const rawTraits = [
+                navigator.userAgent,
+                screen.width + "x" + screen.height + "x" + screen.colorDepth,
+                Intl.DateTimeFormat().resolvedOptions().timeZone,
+                navigator.hardwareConcurrency || "unknown",
+                canvasData
+            ].join("###");
+
+            // Băm chuỗi thành mã 8 ký tự Hex
+            let hash = 0;
+            for (let i = 0; i < rawTraits.length; i++) {
+                const char = rawTraits.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash |= 0;
+            }
+            const hexHash = Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+            
+            // Kết hợp lưu trữ localStorage để tăng độ bền vững
+            let savedId = localStorage.getItem("duxp_device_id");
+            if (!savedId) {
+                savedId = "DEV-" + hexHash;
+                localStorage.setItem("duxp_device_id", savedId);
+            }
+            return savedId;
+        }
+
+        // Tính khoảng cách Haversine (mét)
+        function calcDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+        }
+
+        // 2. Lấy tọa độ GPS người dùng
+        function requestUserLocation() {
+            const gpsBox = document.getElementById('gpsStatus');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (!navigator.geolocation) {
+                gpsBox.className = "gps-status alert alert-danger";
+                gpsBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-1"></i> Trình duyệt không hỗ trợ định vị GPS!';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    userCoords.lat = pos.coords.latitude;
+                    userCoords.lon = pos.coords.longitude;
+                    const dist = calcDistance(userCoords.lat, userCoords.lon, venueConfig.ViDo, venueConfig.KinhDo);
+                    userCoords.distance = dist;
+
+                    if (dist <= venueConfig.BanKinh) {
+                        gpsBox.className = "gps-status alert alert-success";
+                        gpsBox.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i> Vị trí hợp lệ: Cách hội trường <strong>${dist}m</strong> (Cho phép ≤ ${venueConfig.BanKinh}m)`;
+                        submitBtn.disabled = false;
+                    } else {
+                        gpsBox.className = "gps-status alert alert-danger";
+                        gpsBox.innerHTML = `<i class="fa-solid fa-location-dot me-1"></i> Ngoài phạm vi: Cách hội trường <strong>${dist}m</strong> (Yêu cầu ≤ ${venueConfig.BanKinh}m). <br><button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="requestUserLocation()">Cập nhật lại vị trí</button>`;
+                        submitBtn.disabled = true;
+                    }
+                },
+                (err) => {
+                    gpsBox.className = "gps-status alert alert-warning";
+                    gpsBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Chưa cấp quyền GPS. Vui lòng bật <strong>Vị trí (Location)</strong> trên điện thoại rồi bấm tải lại trang!`;
+                    submitBtn.disabled = true;
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        }
+
+        // 3. Tải cấu hình cuộc họp từ Google Apps Script
+        async function initApp() {
+            currentDeviceId = generateDeviceFingerprint();
+            document.getElementById('deviceIdDisplay').textContent = currentDeviceId;
+
+            try {
+                const res = await fetch(`${GAS_URL}?action=getConfig`);
+                const json = await res.json();
+
+                if (json.status === "success") {
+                    venueConfig = json.data;
+                    document.getElementById('meetingTitle').textContent = venueConfig.TenCuocHop;
+
+                    if (venueConfig.TrangThai === "OPEN") {
+                        document.getElementById('activeFormArea').classList.remove('d-none');
+                        requestUserLocation();
+                    } else {
+                        document.getElementById('closedBanner').classList.remove('d-none');
+                    }
+                }
+            } catch (e) {
+                document.getElementById('meetingTitle').textContent = "Lỗi kết nối máy chủ Google Apps Script!";
+            }
+        }
+
+        // 4. Xử lý gửi điểm danh
+        document.getElementById('checkinForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const btnContent = document.getElementById('btnContent');
+            const resultAlert = document.getElementById('resultAlert');
+
+            submitBtn.disabled = true;
+            btnContent.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi dữ liệu điểm danh...';
+            resultAlert.classList.add('d-none');
+
+            const payload = {
+                action: "checkin",
+                type: document.querySelector('input[name="checkType"]:checked').value,
+                title: document.getElementById('title').value,
+                name: document.getElementById('name').value.trim(),
+                deviceId: currentDeviceId,
+                lat: userCoords.lat,
+                lon: userCoords.lon
+            };
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload) // Dùng text/plain mặc định để tránh lỗi CORS preflight
+                });
+                const resJson = await response.json();
+
+                resultAlert.classList.remove('d-none');
+                if (resJson.status === "success") {
+                    resultAlert.className = "alert alert-success text-start";
+                    resultAlert.innerHTML = `<i class="fa-solid fa-circle-check me-2"></i><strong>THÀNH CÔNG!</strong><br>${resJson.message}`;
+                    document.getElementById('name').value = "";
+                } else {
+                    resultAlert.className = "alert alert-danger text-start";
+                    resultAlert.innerHTML = `<i class="fa-solid fa-circle-xmark me-2"></i><strong>KHÔNG THỂ ĐIỂM DANH!</strong><br>${resJson.message}`; } } catch (err) { resultAlert.classList.remove('d-none'); resultAlert.className = "alert alert-danger"; resultAlert.textContent = "Lỗi kết nối mạng. Vui lòng thử lại!"; } finally { submitBtn.disabled = false; btnContent.innerHTML = '<i class="fa-solid fa-check-circle me-2"></i>Xác nhận điểm danh'; } });  // 5. Hiệu ứng cờ Đảng & cờ Tổ quốc rơi const flagImages = [ 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Flag_of_the_Communist_Party_of_Vietnam.svg/200px-Flag_of_the_Communist_Party_of_Vietnam.svg.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/200px-Flag_of_Vietnam.svg.png' ]; function createFallingFlag() { const container = document.getElementById('flag-fall-container'); if (!container) return; const flag = document.createElement('img'); flag.src = flagImages[Math.floor(Math.random() * flagImages.length)]; flag.classList.add('falling-flag'); const size = Math.random() * 14 + 22; const duration = Math.random() * 5 + 8; flag.style.width = `${size}px`;
+            flag.style.left = `${Math.random() * 100}vw`; flag.style.animation = `fallAnimation ${duration}s linear infinite`;
+            container.appendChild(flag);
+            setTimeout(() => flag.remove(), duration * 1000);
+        }
+        for (let i = 0; i < 10; i++) setTimeout(createFallingFlag, i * 900);
+        setInterval(createFallingFlag, 2800);
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
