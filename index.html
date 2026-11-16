@@ -282,7 +282,7 @@
             try {
                 let savedId = localStorage.getItem("duxp_device_id");
                 if (!savedId) {
-                    savedId = "DEV-" + hexHash;
+                    savedId = fallbackId; //"DEV-" + hexHash;
                     localStorage.setItem("duxp_device_id", savedId);
                 }
                 return savedId;
