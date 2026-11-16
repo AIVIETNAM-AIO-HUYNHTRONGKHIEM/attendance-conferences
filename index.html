@@ -399,15 +399,36 @@
                     document.getElementById('name').value = "";
                 } else {
                     resultAlert.className = "alert alert-danger text-start";
-                    resultAlert.innerHTML = `<i class="fa-solid fa-circle-xmark me-2"></i><strong>KHÔNG THỂ ĐIỂM DANH!</strong><br>${resJson.message}`; } } catch (err) { resultAlert.classList.remove('d-none'); resultAlert.className = "alert alert-danger"; resultAlert.textContent = "Lỗi kết nối mạng. Vui lòng thử lại!"; } finally { submitBtn.disabled = false; btnContent.innerHTML = '<i class="fa-solid fa-check-circle me-2"></i>Xác nhận điểm danh'; } });  // 5. Hiệu ứng cờ Đảng & cờ Tổ quốc rơi const flagImages = [ 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Flag_of_the_Communist_Party_of_Vietnam.svg/200px-Flag_of_the_Communist_Party_of_Vietnam.svg.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/200px-Flag_of_Vietnam.svg.png' ]; function createFallingFlag() { const container = document.getElementById('flag-fall-container'); if (!container) return; const flag = document.createElement('img'); flag.src = flagImages[Math.floor(Math.random() * flagImages.length)]; flag.classList.add('falling-flag'); const size = Math.random() * 14 + 22; const duration = Math.random() * 5 + 8; flag.style.width = `${size}px`;
-            flag.style.left = `${Math.random() * 100}vw`; flag.style.animation = `fallAnimation ${duration}s linear infinite`;
-            container.appendChild(flag);
-            setTimeout(() => flag.remove(), duration * 1000);
-        }
-        for (let i = 0; i < 10; i++) setTimeout(createFallingFlag, i * 900);
-        setInterval(createFallingFlag, 2800);
+                    resultAlert.innerHTML = `<i class="fa-solid fa-circle-xmark me-2"></i><strong>KHÔNG THỂ ĐIỂM DANH!</strong><br>${resJson.message}`; 
+                } 
+            } 
+            catch (err) { 
+                resultAlert.classList.remove('d-none'); 
+                resultAlert.className = "alert alert-danger"; 
+                resultAlert.textContent = "Lỗi kết nối mạng. Vui lòng thử lại!"; 
+            } 
+            finally { 
+                submitBtn.disabled = false; 
+                btnContent.innerHTML = '<i class="fa-solid fa-check-circle me-2"></i>Xác nhận điểm danh'; 
+            } });  
+            // 5. Hiệu ứng cờ Đảng & cờ Tổ quốc rơi 
+            const flagImages = [ 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Flag_of_the_Communist_Party_of_Vietnam.svg/200px-Flag_of_the_Communist_Party_of_Vietnam.svg.png', 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Flag_of_Vietnam.svg/200px-Flag_of_Vietnam.svg.png' ]; 
+            function createFallingFlag() { 
+                const container = document.getElementById('flag-fall-container'); 
+                if (!container) return; 
+                const flag = document.createElement('img'); 
+                flag.src = flagImages[Math.floor(Math.random() * flagImages.length)]; 
+                flag.classList.add('falling-flag'); const size = Math.random() * 14 + 22; 
+                const duration = Math.random() * 5 + 8; flag.style.width = `${size}px`;
+                flag.style.left = `${Math.random() * 100}vw`; 
+                flag.style.animation = `fallAnimation ${duration}s linear infinite`;
+                container.appendChild(flag);
+                setTimeout(() => flag.remove(), duration * 1000);
+            }
+            for (let i = 0; i < 10; i++) setTimeout(createFallingFlag, i * 900);
+            setInterval(createFallingFlag, 2800);
 
-        window.onload = initApp;
+            window.onload = initApp;
     </script>
 </body>
 </html>
