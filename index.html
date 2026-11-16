@@ -242,21 +242,30 @@
 
         // 1. Tạo mã định danh thiết bị chống điểm danh 2 lần (Hardware + Canvas Fingerprint)
         function generateDeviceFingerprint() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.textBaseline = "top";
-            ctx.font = "14px 'Arial'";
-            ctx.fillStyle = "#f60";
-            ctx.fillRect(125, 1, 62, 20);
-            ctx.fillStyle = "#069";
-            ctx.fillText("DANG_UY_XUAN_PHUOC", 2, 15);
-            const canvasData = canvas.toDataURL();
+            let canvasData = "no-canvas";
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.textBaseline = "top";
+                    ctx.font = "14px 'Arial'";
+                    ctx.fillStyle = "#f60";
+                    ctx.fillRect(125, 1, 62, 20);
+                    ctx.fillStyle = "#069";
+                    ctx.fillText("DANG_UY_XUAN_PHUOC", 2, 15);
+                    const canvasData = canvas.toDataURL();
+                }
+            } catch (e) {
+                canvasData = "canvas-blocked";
+            }
+            
+            
 
             const rawTraits = [
-                navigator.userAgent,
-                screen.width + "x" + screen.height + "x" + screen.colorDepth,
-                Intl.DateTimeFormat().resolvedOptions().timeZone,
-                navigator.hardwareConcurrency || "unknown",
+                navigator.userAgent || "ua",
+                (screen.width || 0) + "x" + (screen.height || 0), //+ "x" + screen.colorDepth,
+                (Intl.DateTimeFormat().resolvedOptions().timeZone || "tz"),
+                navigator.hardwareConcurrency || "cpu",
                 canvasData
             ].join("###");
 
@@ -267,15 +276,19 @@
                 hash = ((hash << 5) - hash) + char;
                 hash |= 0;
             }
-            const hexHash = Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
-            
+            // const hexHash = Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+            const fallbackId = "DEV-" + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
             // Kết hợp lưu trữ localStorage để tăng độ bền vững
-            let savedId = localStorage.getItem("duxp_device_id");
-            if (!savedId) {
-                savedId = "DEV-" + hexHash;
-                localStorage.setItem("duxp_device_id", savedId);
+            try {
+                let savedId = localStorage.getItem("duxp_device_id");
+                if (!savedId) {
+                    savedId = "DEV-" + hexHash;
+                    localStorage.setItem("duxp_device_id", savedId);
+                }
+                return savedId;
+            } catch (e) {
+                return fallbackId;
             }
-            return savedId;
         }
 
         // Tính khoảng cách Haversine (mét)
