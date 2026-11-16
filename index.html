@@ -370,7 +370,8 @@
             const submitBtn = document.getElementById('submitBtn');
             const btnContent = document.getElementById('btnContent');
             const resultAlert = document.getElementById('resultAlert');
-
+            const checkType = document.querySelector('input[name="checkType"]:checked').value;
+            
             submitBtn.disabled = true;
             btnContent.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi dữ liệu điểm danh...';
             resultAlert.classList.add('d-none');
@@ -394,9 +395,50 @@
 
                 resultAlert.classList.remove('d-none');
                 if (resJson.status === "success") {
+                    const driveUrl = (resJson.redirectUrl || (venueConfig && venueConfig.LinkTaiLieu) || "").trim();
                     resultAlert.className = "alert alert-success text-start";
-                    resultAlert.innerHTML = `<i class="fa-solid fa-circle-check me-2"></i><strong>THÀNH CÔNG!</strong><br>${resJson.message}`;
                     document.getElementById('name').value = "";
+
+                    if (driveUrl && driveUrl.startsWith("http")) {
+                        if (checkType === "VÀO") {
+                            let secondsLeft = 3;
+                            resultAlert.innerHTML = `
+                                <i class="fa-solid fa-circle-check me-2"></i><strong>THÀNH CÔNG!</strong><br>${resJson.message}
+                                <hr class="my-2">
+                                <div class="text-center">
+                                    <p class="mb-2 fw-bold text-primary">
+                                        <span class="spinner-border spinner-border-sm me-1"></span>
+                                        Đang chuyển sang thư mục tài liệu sau <span id="redirectTimer">${secondsLeft}</span>s...
+                                    </p>
+                                    <a href="${driveUrl}" class="btn btn-success btn-sm w-100 fw-bold">
+                                        <i class="fa-brands fa-google-drive me-1"></i> Mở thư mục tài liệu ngay
+                                    </a>
+                                </div>
+                                `;
+
+                            const timerInterval = setInterval(() => {
+                                secondsLeft--;
+                                const timerEl = document.getElementById('redirectTimer');
+                                if (timerEl) timerEl.textContent = secondsLeft;
+                                if (secondsLeft <= 0) {
+                                    clearInterval(timerInterval);
+                                    window.location.href = driveUrl;
+                                }
+                            }, 1000);
+                        } else {
+                            // Nếu điểm danh RA, hiển thị nút xem lại tài liệu nếu cần
+                            resultAlert.innerHTML = `
+                                <i class="fa-solid fa-circle-check me-2"></i><strong>THÀNH CÔNG!</strong><br>${resJson.message}
+                                <div class="mt-2">
+                                    <a href="${driveUrl}" class="btn btn-outline-success btn-sm w-100 fw-bold">
+                                        <i class="fa-brands fa-google-drive me-1"></i> Xem lại tài liệu hội nghị
+                                    </a>
+                                </div>
+                            `;
+                        }    
+                    
+                    // resultAlert.innerHTML = `<i class="fa-solid fa-circle-check me-2"></i><strong>THÀNH CÔNG!</strong><br>${resJson.message}`;
+                    
                 } else {
                     resultAlert.className = "alert alert-danger text-start";
                     resultAlert.innerHTML = `<i class="fa-solid fa-circle-xmark me-2"></i><strong>KHÔNG THỂ ĐIỂM DANH!</strong><br>${resJson.message}`; 
